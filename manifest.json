@@ -1,0 +1,24 @@
+{
+  "theme_color": "#000000",
+  "short_name": "GrowthGenie ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "name": "GrowthGenie AI Commerce",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzAwMDAwMCIvPgogIDx0ZXh0IHg9IjI1NiIgeT0iMzAwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAwIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkc8L3RleHQ+Cjwvc3ZnPg==",
+      "type": "image/svg+xml",
+      "purpose": "any maskable",
+      "sizes": "192x192"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzAwMDAwMCIvPgogIDx0ZXh0IHg9IjI1NiIgeT0iMzAwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAwIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkc8L3RleHQ+Cjwvc3ZnPg==",
+      "type": "image/svg+xml",
+      "purpose": "any maskable",
+      "sizes": "512x512"
+    }
+  ],
+  "description": "A production-ready agentic commerce platform with an AI shopping assistant, personalized discovery, secure accounts, catalog search, wishlist and cart, discounts, checkout, address management, and order tracking.",
+  "orientation": "portrait-primary"
+}
