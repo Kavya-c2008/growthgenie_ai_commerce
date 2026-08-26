@@ -17,6 +17,11 @@ The goal is simple:
 > **Turn customer and product data into actionable business growth opportunities.**
 
 ---
+🌐 Live Demo
+
+👉 View Live Project https://growthgenieaicommerce.vercel.app/
+
+---
 
 ## ✨ Key Features
 
