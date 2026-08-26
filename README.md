@@ -134,9 +134,8 @@ GrowthGenie can be extended for:
 
 ## 📸 Project Preview
 
-> Add screenshots or a short demo GIF here to showcase the dashboard, AI assistant, product discovery, and analytics features.
 
----
+
 
 ## 🚀 Getting Started
 
