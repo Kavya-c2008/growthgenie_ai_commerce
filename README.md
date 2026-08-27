@@ -132,11 +132,6 @@ GrowthGenie can be extended for:
 
 ---
 
-## 📸 Project Preview
-
-
-
-
 ## 🚀 Getting Started
 
 ### 1. Clone the repository
