@@ -19,7 +19,7 @@ The goal is simple:
 ---
 🌐 Live Demo
 
-👉 View Live Project https://growthgenieaicommerce.vercel.app/
+👉 View Live Project https:https://growthgenieaicommerce.vercel.app/
 
 ---
 
