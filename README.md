@@ -19,8 +19,7 @@ The goal is simple:
 ---
 🌐 Live Demo
 
-👉 View Live Project https://growthgenieaicommerce-j5581y1g2-kavya-c.vercel.app/
-
+👉 View Live Project https://growthgenieaicommerce-lxsnqyxgt-kavya-c.vercel.app/
 ---
 
 ## ✨ Key Features
