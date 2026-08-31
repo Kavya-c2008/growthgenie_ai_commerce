@@ -17,19 +17,36 @@ export function ComparePage({ ctx }: { ctx: any }) {
   const products = pick(ctx.catalog, selected)
   const toggle = (id: string) => setSelected(current => current.includes(id) ? current.filter(item => item !== id) : current.length < 4 ? [...current, id] : current)
   const summarize = async () => {
-    if (products.length < 2) { ctx.notify('info', 'Select at least two products', 'You can compare up to four products at once.'); return }
-    setLoading(true)
-    try {
-      const best = [...products].sort((a,b) => (b.aiScore ?? 0) - (a.aiScore ?? 0))[0]
-      const prompt = `Summarize a shopping comparison in under 90 words. Products: ${products.map(p => `${p.name}: ₹${salePrice(p.price,p.discount)}, ${p.rating}/5, ${JSON.stringify(p.specs ?? {})}`).join(' | ')}. Recommend ${best.name} if it best balances value and rating.`
-      if (window.GENMB_APP_ID) {
-        const response = await fetch('/api/ai/completion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt, appId: window.GENMB_APP_ID, maxTokens: 180 }) })
-        const json = await response.json()
-        if (!response.ok || !json?.data?.text) throw new Error(json?.message || 'AI summary request failed')
-        setAiSummary(json.data.text)
-      } else setAiSummary(`Based on price, rating, discount, and feature fit, ${best.name} is the best overall choice. Its ${best.rating}/5 rating and AI value score of ${best.aiScore}/100 make it the most balanced option. Choose another option only if its specific specifications better match your priority.`)
-    } catch (err: any) { ctx.notify('error', 'Could not generate AI comparison', err?.message) } finally { setLoading(false) }
+  if (products.length < 2) {
+    ctx.notify(
+      'info',
+      'Select at least two products',
+      'You can compare up to four products at once.'
+    )
+    return
   }
+
+  setLoading(true)
+
+  try {
+    const best = [...products].sort(
+      (a, b) => (b.aiScore ?? 0) - (a.aiScore ?? 0)
+    )[0]
+
+    setAiSummary(
+      `Based on price, rating, discount, and feature fit, ${best.name} looks strongest overall.`
+    )
+  } catch (err) {
+    ctx.notify(
+      'error',
+      'Could not generate AI comparison',
+      'Please try again.'
+    )
+  } finally {
+    setLoading(false)
+  }
+}
+    
   const rows = [['Sale price', p => money(salePrice(p.price,p.discount))], ['Rating', p => `${p.rating}/5`], ['Brand', p => p.brand], ['AI score', p => `${p.aiScore ?? 0}/100`], ['Performance', p => p.specs?.Performance ?? '—'], ['Battery', p => p.specs?.Battery ?? '—'], ['Display', p => p.specs?.Display ?? '—'], ['Storage', p => p.specs?.Storage ?? '—'], ['RAM', p => p.specs?.RAM ?? '—'], ['Camera', p => p.specs?.Camera ?? '—'], ['Warranty', p => p.specs?.Warranty ?? '—']] as Array<[string, (p: Product) => string]>
   return <Chrome title="Compare with confidence" subtitle="Select two to four products. GrowthGenie highlights the trade-offs that matter: value, rating, performance, and key specifications."><div className="mt-8 grid gap-6 lg:grid-cols-[300px_1fr]"><aside className="rounded-lg border bg-card p-4 shadow-sm"><h2 className="font-bold">Choose products ({selected.length}/4)</h2><div className="mt-4 max-h-[520px] space-y-2 overflow-y-auto">{ctx.catalog.map((p: Product) => <label key={p.id} className="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-accent"><input type="checkbox" checked={selected.includes(p.id)} disabled={!selected.includes(p.id) && selected.length >= 4} onChange={() => toggle(p.id)} className="size-4 accent-[var(--primary)]"/><img src={p.image} alt="" className="size-10 rounded object-cover"/><span className="min-w-0 flex-1 truncate text-sm font-semibold">{p.name}</span></label>)}</div></aside><section>{products.length < 2 ? <EmptyState icon={<BarChart3 size={28}/>} title="Choose products to compare" description="Select at least two products from the list to see a full comparison table."/> : <><div className="overflow-x-auto rounded-lg border bg-card shadow-sm"><table className="w-full min-w-[680px] text-sm"><thead><tr className="border-b bg-muted"><th className="p-4 text-left">Feature</th>{products.map(p => <th key={p.id} className="p-4 text-left"><Link className="hover:text-primary" to={`/product/${p.id}`}>{p.name}</Link></th>)}</tr></thead><tbody>{rows.map(([label, value]) => <tr key={label} className="border-b last:border-0"><td className="bg-muted/40 p-4 font-semibold">{label}</td>{products.map(p => <td key={p.id} className="p-4">{value(p)}</td>)}</tr>)}<tr><td className="bg-muted/40 p-4 font-semibold">Pros</td>{products.map(p=><td key={p.id} className="p-4 text-xs leading-5">{p.pros?.slice(0,2).join(' · ')}</td>)}</tr><tr><td className="bg-muted/40 p-4 font-semibold">Cons</td>{products.map(p=><td key={p.id} className="p-4 text-xs leading-5">{p.cons?.slice(0,2).join(' · ')}</td>)}</tr></tbody></table></div><div className="mt-5 rounded-lg border bg-accent/50 p-5"><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="flex items-center gap-2 text-lg font-bold"><Sparkles size={18} className="text-primary"/> AI comparison summary</h2><Button onClick={summarize} loading={loading} disabled={loading}>Generate summary</Button></div><p className="mt-3 text-sm leading-6 text-muted-foreground">{aiSummary}</p></div><div className="mt-5 grid gap-4 sm:grid-cols-2">{products.map(p => <ProductCard key={p.id} product={p} onAdd={ctx.addToCart} onWish={ctx.toggleWish} wishlisted={ctx.wishlist.includes(p.id)}/>)}</div></>}</section></div></Chrome>
 }

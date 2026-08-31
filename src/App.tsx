@@ -298,8 +298,295 @@ function ShopPage({ctx}:{ctx:AppContext}) { useDocument('Shop Products | GrowthG
 
 function ProductPage({ctx}:{ctx:AppContext}) { const {id=''}=useParams(); const [product,setProduct]=useState<Product|null>(null); const [reviews,setReviews]=useState<any[]>([]); const [loading,setLoading]=useState(true); const [quantity,setQuantity]=useState(1); const [comment,setComment]=useState(''); const [rating,setRating]=useState('5'); useDocument(product ? `${product.name} | GrowthGenie AI` : 'Product details | GrowthGenie AI','Explore product details, ratings, related products, and personalized shopping help.'); useEffect(()=>{void (async()=>{try {const found=ctx.catalog.find(p=>p.id===id) ?? await getProduct(id); setProduct(found); if(found) setReviews(await listReviews(found.id))} catch(err:any){ctx.notify('error','Could not load product',err?.message)} finally{setLoading(false)}})()},[id,ctx.catalog,ctx.notify]); if(loading) return <Shell ctx={ctx}><div className="mx-auto max-w-7xl px-4 py-12 sm:px-6"><ProductSkeleton/></div></Shell>; if(!product) return <Shell ctx={ctx}><div className="mx-auto max-w-7xl px-4 py-12 sm:px-6"><EmptyState title="Product unavailable" description="This product may have been removed from the catalog." action={<Link to="/shop"><Button>Browse products</Button></Link>}/></div></Shell>; const related=ctx.catalog.filter((p)=>p.id!==product.id && (p.category===product.category || p.tags.some(tag=>product.tags.includes(tag)))).slice(0,4); const submitReview=async(e:React.FormEvent)=>{e.preventDefault(); if(!ctx.user){ctx.notify('info','Sign in to leave a review');return} if(comment.trim().length<8){ctx.notify('error','Tell shoppers a little more','Your review needs at least 8 characters.');return} try {const review={id:crypto.randomUUID(),productId:product.id,userId:ctx.user.id,author:ctx.user.name||ctx.user.email,rating:Number(rating),comment:comment.trim(),createdAt:new Date().toISOString()}; await saveReview(review); setReviews((items)=>[review,...items]);setComment('');ctx.notify('success','Review published','Thanks for helping the community.')} catch(err:any){ctx.notify('error','Could not publish review',err?.message)}}; return <Shell ctx={ctx}><section className="mx-auto max-w-7xl px-4 py-10 sm:px-6"><nav aria-label="Breadcrumb" className="mb-6 text-sm text-muted-foreground"><Link to="/shop" className="hover:text-primary">Shop</Link> <span className="px-2">/</span> <span>{product.category}</span></nav><div className="grid gap-8 lg:grid-cols-2"><div className="overflow-hidden rounded-lg border bg-card"><img data-genmb-img={product.name} src={product.image} alt={product.name} width="800" height="800" className="aspect-square w-full object-cover bg-muted" onError={(event)=>{event.currentTarget.src=`https://picsum.photos/seed/${product.id}-fallback/800/800`}}/></div><div><p className="text-sm font-semibold uppercase tracking-[.14em] text-primary">{product.brand} · {product.category}</p><h1 className="mt-2 text-4xl font-bold tracking-tight">{product.name}</h1><div className="mt-4 flex items-center gap-3"><Stars rating={product.rating}/><span className="text-sm text-muted-foreground">{product.reviewCount + reviews.length} reviews</span></div><p className="mt-6 text-lg leading-8 text-muted-foreground">{product.description}</p><div className="mt-6 flex items-baseline gap-3"><p className="text-3xl font-bold">{money(salePrice(product.price,product.discount))}</p>{product.discount>0&&<><p className="text-muted-foreground line-through">{money(product.price)}</p><span className="rounded-full bg-accent px-2 py-1 text-sm font-bold text-primary">Save {product.discount}%</span></>}</div><p className={cn('mt-4 text-sm font-semibold',product.stock?'text-primary':'text-destructive')}>{product.stock ? `${product.stock} in stock · Ready to add` : 'Currently out of stock'}</p><div className="mt-6 flex flex-wrap gap-3"><label className="flex min-h-10 items-center gap-2 rounded-lg border bg-card px-3 text-sm font-medium">Quantity <input aria-label="Quantity" type="number" min="1" max={product.stock} value={quantity} onChange={(e)=>setQuantity(Math.max(1,Math.min(product.stock,Number(e.target.value)||1)))} className="w-12 border-0 bg-transparent text-center outline-none"/></label><Button onClick={()=>ctx.addToCart(product,quantity)} disabled={!product.stock}><ShoppingBag size={17}/> Add to cart</Button><Button variant="outline" onClick={()=>ctx.toggleWish(product)}><Heart size={17} className={ctx.wishlist.includes(product.id)?'fill-current text-destructive':''}/>{ctx.wishlist.includes(product.id)?'Saved':'Save'}</Button></div><div className="mt-8 rounded-lg border bg-muted/60 p-4"><p className="flex items-center gap-2 font-semibold"><Bot size={18} className="text-primary"/> Need a second opinion?</p><p className="mt-1 text-sm text-muted-foreground">Ask the AI concierge to compare this with another product or find a more budget-friendly alternative.</p><Link to="/agent" className="mt-3 inline-block text-sm font-bold text-primary hover:underline">Ask GrowthGenie AI →</Link></div><div className="mt-7 flex flex-wrap gap-2">{product.tags.map((tag)=><span key={tag} className="rounded-full border bg-card px-3 py-1 text-sm text-muted-foreground">{tag}</span>)}</div></div></div></section><section className="mx-auto max-w-7xl px-4 py-12 sm:px-6"><h2 className="text-2xl font-bold">Customer reviews</h2><div className="mt-5 grid gap-6 lg:grid-cols-[.8fr_1.2fr]"><form onSubmit={submitReview} className="rounded-lg border bg-card p-5 shadow-sm"><h3 className="font-bold">Share your experience</h3><div className="mt-4 grid gap-4"><SelectField label="Your rating" value={rating} onChange={(e)=>setRating(e.target.value)}><option value="5">5 — Excellent</option><option value="4">4 — Great</option><option value="3">3 — Good</option><option value="2">2 — Fair</option><option value="1">1 — Poor</option></SelectField><label className="grid gap-1.5 text-sm font-medium">Review<textarea aria-label="Review" value={comment} onChange={(e)=>setComment(e.target.value)} onBlur={()=>comment && comment.trim().length<8 && ctx.notify('info','Add a little more detail','Reviews need at least 8 characters.')} className="min-h-28 rounded-lg border bg-card p-3 text-sm outline-none focus:ring-2 focus:ring-ring" placeholder="What did you like about it?"/></label><Button type="submit">Publish review</Button></div></form><div className="grid gap-3">{reviews.length ? reviews.map((review)=><article key={review.id} className="rounded-lg border bg-card p-5"><div className="flex items-center justify-between gap-3"><p className="font-semibold">{review.author}</p><Stars rating={review.rating}/></div><p className="mt-2 text-sm leading-6 text-muted-foreground">{review.comment}</p><p className="mt-3 text-xs text-muted-foreground">{dateLabel(review.createdAt)}</p></article>) : <EmptyState title="Be the first to review" description="Share your experience and help other shoppers decide."/>}</div></div></section><section className="mx-auto max-w-7xl px-4 pb-4 sm:px-6"><h2 className="mb-5 text-2xl font-bold">You may also like</h2><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{related.map((p)=><ProductCard key={p.id} product={p} onAdd={ctx.addToCart} onWish={ctx.toggleWish} wishlisted={ctx.wishlist.includes(p.id)}/>)}</div></section></Shell> }
 
-function AgentPage({ctx}:{ctx:AppContext}) { useDocument('AI Shopping Concierge | GrowthGenie AI','Get natural-language shopping recommendations, compare products, and add the right items to your cart.'); const [messages,setMessages]=useState<any[]>([]); const [input,setInput]=useState(''); const [sending,setSending]=useState(false); const [loaded,setLoaded]=useState(false); useEffect(()=>{if(!ctx.user){setLoaded(true);return} void listConversation(ctx.user.id).then((items)=>{setMessages(items);setLoaded(true)}).catch((err:any)=>{ctx.notify('error','Could not load your AI conversation',err?.message);setLoaded(true)})},[ctx.user,ctx.notify]); const send=async(e:React.FormEvent)=>{e.preventDefault();const text=input.trim();if(!text||sending)return;const userMessage={id:crypto.randomUUID(),role:'user' as const,text,createdAt:new Date().toISOString()};setInput('');setSending(true);setMessages((items)=>[...items,userMessage]);try{if(ctx.user)await saveConversation(ctx.user.id,userMessage); const history=messages.map(m=>m.text); const preferenceContext=ctx.profile?.preferences.join(' ') ?? ''; const result=runAgent(`${preferenceContext} ${text}`.trim(),ctx.catalog,history); const agentMessage={id:crypto.randomUUID(),role:'agent' as const,text:result.text,productIds:result.products.map(p=>p.id),createdAt:new Date().toISOString()}; if(ctx.user)await saveConversation(ctx.user.id,agentMessage);setMessages((items)=>[...items,agentMessage])}catch(err:any){ctx.notify('error','The AI concierge could not respond',err?.message)}finally{setSending(false)}}; const recommendationMessage=messages.filter(m=>m.role==='agent'&&m.productIds?.length).slice(-1)[0]; const recommendations=recommendationMessage?.productIds?.map((id:string)=>ctx.catalog.find(p=>p.id===id)).filter(Boolean) as Product[]|undefined; return <Shell ctx={ctx}><section className="mx-auto max-w-7xl px-4 py-10 sm:px-6"><div className="mb-7"><p className="text-sm font-semibold uppercase tracking-[.14em] text-primary">GrowthGenie AI</p><h1 className="mt-2 text-4xl font-bold">Your shopping concierge</h1><p className="mt-3 max-w-2xl text-muted-foreground">Describe what you need in your own words. I’ll rank in-stock products by fit, price, rating, discount, brand, and value, then help you compare and buy.</p></div><div className="grid gap-6 lg:grid-cols-[1.1fr_.9fr]"><section aria-label="AI conversation" className="flex min-h-[560px] flex-col rounded-lg border bg-card shadow-sm"><div className="flex items-center gap-3 border-b p-5"><span className="grid size-10 place-items-center rounded-full bg-primary text-primary-foreground"><Bot size={20}/></span><div><h2 className="font-bold">GrowthGenie Concierge</h2><p className="text-sm text-muted-foreground">Fallback recommendation engine · always available</p></div></div><div className="flex-1 space-y-4 overflow-y-auto p-5">{!loaded ? <div className="space-y-3"><div className="h-16 animate-pulse rounded-lg bg-muted"/><div className="ml-auto h-12 w-3/4 animate-pulse rounded-lg bg-muted"/></div> : messages.length ? messages.map((message)=><div key={message.id} className={cn('max-w-[88%] rounded-lg p-4 text-sm leading-6',message.role==='user'?'ml-auto bg-primary text-primary-foreground':'border bg-muted/50')}><p className="whitespace-pre-line">{message.text}</p></div>) : <div className="flex h-full flex-col justify-center"><p className="text-lg font-semibold">What are you shopping for?</p><p className="mt-1 text-sm text-muted-foreground">Try “I need wireless headphones for travel under $250” or “Compare Aurora X1 and Orbit Pro.”</p><div className="mt-5 flex flex-wrap gap-2">{['Best skincare under $50','A gift for a hiker','Compare Aurora X1 and Orbit Pro'].map((prompt)=><button key={prompt} onClick={()=>setInput(prompt)} className="rounded-full border bg-card px-3 py-2 text-sm font-medium hover:bg-accent">{prompt}</button>)}</div></div>}</div><form onSubmit={send} className="border-t p-4"><label className="sr-only" htmlFor="agent-prompt">Shopping request</label><div className="flex gap-2"><input id="agent-prompt" value={input} onChange={(e)=>setInput(e.target.value)} className="min-h-11 flex-1 rounded-lg border bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-ring" placeholder="Tell the concierge what you need…" disabled={sending}/><Button type="submit" loading={sending} disabled={!input.trim()}><span className="hidden sm:inline">Ask</span><ChevronRight size={17}/></Button></div>{!ctx.user&&<p className="mt-2 text-xs text-muted-foreground">Sign in to save this conversation to your account.</p>}</form></section><aside><h2 className="mb-4 text-xl font-bold">Recommended for you</h2>{recommendations?.length ? <div className="grid gap-4">{recommendations.map((product)=><ProductCard key={product.id} product={product} onAdd={ctx.addToCart} onWish={ctx.toggleWish} wishlisted={ctx.wishlist.includes(product.id)}/>)}</div> : <EmptyState icon={<Sparkles size={28}/>} title="Personalized matches appear here" description="Start a conversation and I’ll show ranked recommendations you can add to your cart." action={<Link to="/shop"><Button variant="outline">Browse products</Button></Link>}/>}</aside></div></section></Shell> }
+function AgentPage({ctx}:{ctx:AppContext}) {
+  useDocument(
+    'AI Shopping Concierge | GrowthGenie AI',
+    'Get natural-language shopping recommendations, compare products, and add the right items to your cart.'
+  )
 
+  const [messages, setMessages] = useState<any[]>([])
+  const [input, setInput] = useState('')
+  const [sending, setSending] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+
+  // Local conversation only.
+  // No API request is required, so the Concierge works on Vercel
+  // even when the conversation backend is unavailable.
+  useEffect(() => {
+    setLoaded(true)
+  }, [])
+
+  const send = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const text = input.trim()
+
+    if (!text || sending) return
+
+    const userMessage = {
+      id: crypto.randomUUID(),
+      role: 'user' as const,
+      text,
+      createdAt: new Date().toISOString()
+    }
+
+    setInput('')
+    setSending(true)
+
+    setMessages(items => [...items, userMessage])
+
+    try {
+      const history = messages.map(m => m.text)
+
+      const preferenceContext =
+        ctx.profile?.preferences?.join(' ') ?? ''
+
+      const result = runAgent(
+        `${preferenceContext} ${text}`.trim(),
+        ctx.catalog,
+        history
+      )
+
+      const agentMessage = {
+        id: crypto.randomUUID(),
+        role: 'agent' as const,
+        text: result.text,
+        productIds: result.products.map(p => p.id),
+        createdAt: new Date().toISOString()
+      }
+
+      setMessages(items => [...items, agentMessage])
+    } catch (err: any) {
+      console.error('AI Concierge error:', err)
+
+      ctx.notify(
+        'error',
+        'The AI concierge could not respond',
+        err?.message || 'Please try again.'
+      )
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const recommendationMessage =
+    messages
+      .filter(
+        m => m.role === 'agent' && m.productIds?.length
+      )
+      .slice(-1)[0]
+
+  const recommendations =
+    recommendationMessage?.productIds
+      ?.map((id: string) =>
+        ctx.catalog.find(p => p.id === id)
+      )
+      .filter(Boolean) as Product[] | undefined
+
+  return (
+    <Shell ctx={ctx}>
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+
+        <div className="mb-7">
+          <p className="text-sm font-semibold uppercase tracking-[.14em] text-primary">
+            GrowthGenie AI
+          </p>
+
+          <h1 className="mt-2 text-4xl font-bold">
+            Your shopping concierge
+          </h1>
+
+          <p className="mt-3 max-w-2xl text-muted-foreground">
+            Describe what you need in your own words. I’ll rank
+            in-stock products by fit, price, rating, discount,
+            brand, and value, then help you compare and buy.
+          </p>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-[1.1fr_.9fr]">
+
+          <section
+            aria-label="AI conversation"
+            className="flex min-h-[560px] flex-col rounded-lg border bg-card shadow-sm"
+          >
+
+            <div className="flex items-center gap-3 border-b p-5">
+              <span className="grid size-10 place-items-center rounded-full bg-primary text-primary-foreground">
+                <Bot size={20} />
+              </span>
+
+              <div>
+                <h2 className="font-bold">
+                  GrowthGenie Concierge
+                </h2>
+
+                <p className="text-sm text-muted-foreground">
+                  AI-powered product recommendations · always available
+                </p>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-4 overflow-y-auto p-5">
+
+              {!loaded ? (
+
+                <div className="space-y-3">
+                  <div className="h-16 animate-pulse rounded-lg bg-muted" />
+                  <div className="ml-auto h-12 w-3/4 animate-pulse rounded-lg bg-muted" />
+                </div>
+
+              ) : messages.length ? (
+
+                messages.map(message => (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      'max-w-[88%] rounded-lg p-4 text-sm leading-6',
+                      message.role === 'user'
+                        ? 'ml-auto bg-primary text-primary-foreground'
+                        : 'border bg-muted/50'
+                    )}
+                  >
+                    <p className="whitespace-pre-line">
+                      {message.text}
+                    </p>
+                  </div>
+                ))
+
+              ) : (
+
+                <div className="flex h-full flex-col justify-center">
+
+                  <p className="text-lg font-semibold">
+                    What are you shopping for?
+                  </p>
+
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Try “I need wireless headphones for travel under
+                    ₹20,000” or “Compare Aurora X1 and Orbit Pro.”
+                  </p>
+
+                  <div className="mt-5 flex flex-wrap gap-2">
+
+                    {[
+                      'Best skincare under ₹5,000',
+                      'A gift for a hiker',
+                      'Compare Aurora X1 and Orbit Pro'
+                    ].map(prompt => (
+
+                      <button
+                        key={prompt}
+                        onClick={() => setInput(prompt)}
+                        className="rounded-full border bg-card px-3 py-2 text-sm font-medium hover:bg-accent"
+                      >
+                        {prompt}
+                      </button>
+
+                    ))}
+
+                  </div>
+
+                </div>
+
+              )}
+
+            </div>
+
+            <form
+              onSubmit={send}
+              className="border-t p-4"
+            >
+
+              <label
+                className="sr-only"
+                htmlFor="agent-prompt"
+              >
+                Shopping request
+              </label>
+
+              <div className="flex gap-2">
+
+                <input
+                  id="agent-prompt"
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  className="min-h-11 flex-1 rounded-lg border bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="Tell the concierge what you need…"
+                  disabled={sending}
+                />
+
+                <Button
+                  type="submit"
+                  loading={sending}
+                  disabled={!input.trim()}
+                >
+                  <span className="hidden sm:inline">
+                    Ask
+                  </span>
+                  <ChevronRight size={17} />
+                </Button>
+
+              </div>
+
+              {!ctx.user && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Sign in to save your conversation to your account.
+                </p>
+              )}
+
+            </form>
+
+          </section>
+
+          <aside>
+
+            <h2 className="mb-4 text-xl font-bold">
+              Recommended for you
+            </h2>
+
+            {recommendations?.length ? (
+
+              <div className="grid gap-4">
+
+                {recommendations.map(product => (
+
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onAdd={ctx.addToCart}
+                    onWish={ctx.toggleWish}
+                    wishlisted={ctx.wishlist.includes(product.id)}
+                  />
+
+                ))}
+
+              </div>
+
+            ) : (
+
+              <EmptyState
+                icon={<Sparkles size={28} />}
+                title="Personalized matches appear here"
+                description="Start a conversation and I’ll show ranked recommendations you can add to your cart."
+                action={
+                  <Link to="/shop">
+                    <Button variant="outline">
+                      Browse products
+                    </Button>
+                  </Link>
+                }
+              />
+
+            )}
+
+          </aside>
+
+        </div>
+
+      </section>
+    </Shell>
+  )
+}
 function CartPage({ctx}:{ctx:AppContext}) { useDocument('Your Cart | GrowthGenie AI','Review your saved cart, manage quantities, apply a coupon, and continue to secure checkout.'); const [coupon,setCoupon]=useState(ctx.cart.couponCode??''); const [applying,setApplying]=useState(false); const items=ctx.cart.items.map(item=>({item,product:ctx.catalog.find(p=>p.id===item.productId)})).filter((entry):entry is {item:{productId:string;quantity:number};product:Product}=>Boolean(entry.product)); const subtotal=items.reduce((sum,{item,product})=>sum+salePrice(product.price,product.discount)*item.quantity,0); const [couponData,setCouponData]=useState<Coupon|null>(null); useEffect(()=>{if(ctx.cart.couponCode)void getCoupon(ctx.cart.couponCode).then(setCouponData)},[ctx.cart.couponCode]); const discount=couponData&&subtotal>=couponData.minSpend?subtotal*couponData.percent/100:0; const update=async(product:Product,quantity:number)=>{if(!ctx.user)return;try{const next={...ctx.cart,items:quantity<=0?ctx.cart.items.filter(i=>i.productId!==product.id):ctx.cart.items.map(i=>i.productId===product.id?{...i,quantity:Math.min(product.stock,quantity)}:i)};await saveCart(ctx.user.id,next);await ctx.refreshCart();ctx.notify('success',quantity<=0?'Removed from cart':'Cart updated',product.name)}catch(err:any){ctx.notify('error','Could not update cart',err?.message)}}; const apply=async()=>{if(!ctx.user)return;setApplying(true);try{const found=await getCoupon(coupon);if(!found){ctx.notify('error','Coupon not found','Check the code and try again.');return}if(subtotal<found.minSpend){ctx.notify('error','Order minimum not reached',`${found.code} applies from ${money(found.minSpend)}.`);return}const next={...ctx.cart,couponCode:found.code};await saveCart(ctx.user.id,next);await ctx.refreshCart();setCouponData(found);ctx.notify('success','Coupon applied',found.label)}catch(err:any){ctx.notify('error','Could not apply coupon',err?.message)}finally{setApplying(false)}}; if(!ctx.user) return <Shell ctx={ctx}><div className="mx-auto max-w-4xl px-4 py-12 sm:px-6"><EmptyState icon={<LogIn size={28}/>} title="Sign in to view your cart" description="Your GrowthGenie cart is saved securely to your account." action={<Link to="/login"><Button>Sign in</Button></Link>}/></div></Shell>; return <Shell ctx={ctx}><section className="mx-auto max-w-6xl px-4 py-10 sm:px-6"><h1 className="text-4xl font-bold">Your cart</h1><p className="mt-2 text-muted-foreground">Manage quantities, save your order, and check out securely.</p>{items.length?<div className="mt-8 grid gap-6 lg:grid-cols-[1fr_340px]"><div className="divide-y rounded-lg border bg-card shadow-sm">{items.map(({item,product})=><article key={product.id} className="flex gap-4 p-4 sm:p-5"><img data-genmb-img={product.name} src={product.image} alt={product.name} width="120" height="120" className="size-24 rounded-md object-cover bg-muted sm:size-28" onError={(event)=>{event.currentTarget.src=`https://picsum.photos/seed/${product.id}-fallback/120/120`}}/><div className="min-w-0 flex-1"><Link to={`/product/${product.id}`} className="font-bold hover:text-primary">{product.name}</Link><p className="mt-1 text-sm text-muted-foreground">{product.brand} · {product.stock} in stock</p><p className="mt-2 font-bold">{money(salePrice(product.price,product.discount))}</p><div className="mt-3 flex flex-wrap items-center gap-3"><div className="inline-flex items-center rounded-lg border"><button onClick={()=>update(product,item.quantity-1)} aria-label={`Decrease ${product.name} quantity`} className="p-2 hover:bg-accent">−</button><span className="min-w-9 text-center text-sm font-semibold">{item.quantity}</span><button onClick={()=>update(product,item.quantity+1)} aria-label={`Increase ${product.name} quantity`} disabled={item.quantity>=product.stock} className="p-2 hover:bg-accent disabled:opacity-50">+</button></div><button onClick={()=>update(product,0)} className="text-sm font-semibold text-destructive hover:underline">Remove</button></div></div><p className="whitespace-nowrap font-bold">{money(salePrice(product.price,product.discount)*item.quantity)}</p></article>)}</div><aside className="h-fit rounded-lg border bg-card p-5 shadow-sm"><h2 className="text-lg font-bold">Order summary</h2><div className="mt-4 grid gap-3 text-sm"><div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{money(subtotal)}</span></div><div className="flex justify-between"><span className="text-muted-foreground">Discount</span><span className="text-primary">−{money(discount)}</span></div><div className="border-t pt-3 text-base font-bold"><div className="flex justify-between"><span>Total</span><span>{money(subtotal-discount)}</span></div></div></div><div className="mt-5 border-t pt-5"><Field label="Coupon code" value={coupon} onChange={(e)=>setCoupon(e.target.value.toUpperCase())} placeholder="WELCOME10"/><Button className="mt-2 w-full" variant="outline" onClick={apply} loading={applying} disabled={!coupon.trim()}>Apply code</Button>{couponData&&<p className="mt-2 text-xs font-medium text-primary"><Check size={13} className="mr-1 inline"/>{couponData.label}</p>}</div><Link to="/checkout" className="mt-5 block"><Button className="w-full">Secure checkout <ChevronRight size={17}/></Button></Link></aside></div>:<div className="mt-8"><EmptyState icon={<ShoppingBag size={28}/>} title="Your cart is waiting" description="Ask the AI concierge for a recommendation or explore the catalog to add your first product." action={<Link to="/shop"><Button>Explore products</Button></Link>}/></div>}</section></Shell> }
 
 function WishlistPage({ctx}:{ctx:AppContext}) { useDocument('Wishlist | GrowthGenie AI','Keep track of products you love and add them to your secure GrowthGenie cart when ready.'); const products=ctx.catalog.filter(p=>ctx.wishlist.includes(p.id)); return <Shell ctx={ctx}><section className="mx-auto max-w-7xl px-4 py-10 sm:px-6"><h1 className="text-4xl font-bold">Your wishlist</h1><p className="mt-2 text-muted-foreground">Save products you love and return whenever you are ready.</p>{!ctx.user?<div className="mt-8"><EmptyState icon={<Heart size={28}/>} title="Sign in to save favorites" description="Your wishlist follows you across devices once you sign in." action={<Link to="/login"><Button>Sign in</Button></Link>}/></div>:products.length?<div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{products.map(p=><ProductCard key={p.id} product={p} onAdd={ctx.addToCart} onWish={ctx.toggleWish} wishlisted/>)}</div>:<div className="mt-8"><EmptyState icon={<Heart size={28}/>} title="No saved products yet" description="Explore the catalog and tap the heart to build a shortlist." action={<Link to="/shop"><Button>Explore products</Button></Link>}/></div>}</section></Shell> }

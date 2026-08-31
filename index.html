@@ -305,9 +305,10 @@ class GenMBGoogleAuth {
    * Verify the OTP from signUp(), create the account, and sign in.
    * Returns the User object on success, null on cookie failure.
    */
-  async verifySignUp(email, code) {
+  async verifySignUp(e, email, code) {
     try {
-      var res = await fetch('/api/auth/password/signup-verify', {
+
+      var res = await fetch('/api/auth/password/signup-verify', 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email, code: code, app_id: this.appId }),
