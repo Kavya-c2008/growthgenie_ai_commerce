@@ -8,8 +8,113 @@ const product = (id:string, name:string, category:string, price:number, brand:st
   id, name, category, price, brand, tags, rating, discount, stock, description, specs,
   pros: [tags[0] ? `Optimized for ${tags[0]}` : 'Well-balanced performance', `${rating}/5 customer rating`, discount ? `${discount}% launch saving` : 'Reliable everyday value'],
   cons: ['Limited stock availability', 'Premium features may be more than casual users need'],
-  aiScore: Math.min(99, Math.round(rating * 16 + discount / 3 + popularity / 10)), reviewCount: Math.round(rating * popularity), popularity, createdAt: day(35 - (popularity % 35)), image: `https://loremflickr.com/800/800/${encodeURIComponent(category.toLowerCase())}?lock=${id}`
+  aiScore: Math.min(99, Math.round(rating * 16 + discount / 3 + popularity / 10)), reviewCount: Math.round(rating * popularity), popularity, createdAt: day(35 - (popularity % 35)), image: productImages[id] ?? "https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?auto=format&fit=crop&w=800&q=85"
 })
+const productImages: Record<string, string> = {
+  // Laptops
+  "codebook-14":
+    "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=85",
+
+  "vertex-15":
+    "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?auto=format&fit=crop&w=800&q=85",
+
+  "airlite-13":
+    "https://images.unsplash.com/photo-1517336714739-489689fd1ca8?auto=format&fit=crop&w=800&q=85",
+
+  // Headphones
+  "aurora-x1":
+    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=85",
+
+  "pulse-gaming":
+    "https://images.unsplash.com/photo-1599669454699-248893623440?auto=format&fit=crop&w=800&q=85",
+
+  "echo-buds":
+    "https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?auto=format&fit=crop&w=800&q=85",
+
+  // Smartphones
+  "nova-phone":
+    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=85",
+
+  "orbit-one":
+    "https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=800&q=85",
+
+  "pixelmax-9":
+    "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&w=800&q=85",
+
+  // Watches
+  "orbit-watch":
+    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=85",
+
+  "stride-watch":
+    "https://images.unsplash.com/photo-1546868871-7041f2a55e4f?auto=format&fit=crop&w=800&q=85",
+
+  // Camera / Tablet
+  "lens-cam":
+    "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=85",
+
+  "nova-tablet":
+    "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=800&q=85",
+
+  // Beauty
+  "glow-serum":
+    "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=85",
+
+  "velvet-lip":
+    "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=800&q=85",
+
+  "calm-mist":
+    "https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?auto=format&fit=crop&w=800&q=85",
+
+  // Fashion
+  "flow-linen":
+    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=85",
+
+  "cloud-runner":
+    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=85",
+
+  "solstice-tote":
+    "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=85",
+
+  "fable-jacket":
+    "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=800&q=85",
+
+  // Home
+  "arc-lamp":
+    "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=800&q=85",
+
+  "hearth-cookware":
+    "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=85",
+
+  "loom-throw":
+    "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=800&q=85",
+
+  "brew-press":
+    "https://images.unsplash.com/photo-1511081692775-05d0f180a065?auto=format&fit=crop&w=800&q=85",
+
+  // Sports
+  "peak-pack":
+    "https://images.unsplash.com/photo-1553062407-98eeb64c6a45?auto=format&fit=crop&w=800&q=85",
+
+  "stride-mat":
+    "https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?auto=format&fit=crop&w=800&q=85",
+
+  // Accessories
+  "terra-bottle":
+    "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=85",
+
+  "volt-kettle":
+    "https://images.unsplash.com/photo-1594213114663-d94db9b171c0?auto=format&fit=crop&w=800&q=85",
+
+  "field-journal":
+    "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=800&q=85",
+
+  // Gaming
+  "mechanical-keyboard":
+    "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=85",
+
+  "quest-controller":
+    "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=800&q=85",
+};
 
 export const seedProducts: Product[] = [
   product('codebook-14','CodeBook Pro 14 Laptop','Laptops',64999,'Zenith',['coding','laptop','performance'],4.8,12,19,'A developer-focused 14-inch laptop with fast multitasking, a vivid display, and all-day battery. ',{'Performance':'Intel Core Ultra 5','RAM':'16GB','Storage':'512GB SSD','Display':'14-inch 2.8K','Battery':'14 hours','Warranty':'1 year'},98),
