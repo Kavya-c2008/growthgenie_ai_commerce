@@ -8,7 +8,7 @@ const product = (id:string, name:string, category:string, price:number, brand:st
   id, name, category, price, brand, tags, rating, discount, stock, description, specs,
   pros: [tags[0] ? `Optimized for ${tags[0]}` : 'Well-balanced performance', `${rating}/5 customer rating`, discount ? `${discount}% launch saving` : 'Reliable everyday value'],
   cons: ['Limited stock availability', 'Premium features may be more than casual users need'],
-  aiScore: Math.min(99, Math.round(rating * 16 + discount / 3 + popularity / 10)), reviewCount: Math.round(rating * popularity), popularity, createdAt: day(35 - (popularity % 35)), image: `https://picsum.photos/seed/growthgenie-${id}/800/800`
+  aiScore: Math.min(99, Math.round(rating * 16 + discount / 3 + popularity / 10)), reviewCount: Math.round(rating * popularity), popularity, createdAt: day(35 - (popularity % 35)), image: `https://placehold.co/800x800?text=${encodeURIComponent(name)}`
 })
 
 export const seedProducts: Product[] = [
